@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet'/>
+        <!-- <link rel="stylesheet" href="styles.css"> -->
+    <body>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            h2,
+            h3 {
+                margin: 10px;
+                font-size: 18px;
+            }
+            
+            h3 {
+                font-size: 16px;
+            }
+            
+            p {
+                margin: 10px;
+                font-family: 'Roboto', sans-serif;
+            }
+            
+            /**
+            * Create a position for the map
+            * on the page */
+            #map {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 100%;
+            }
+            
+            /**
+            * Set rules for how the map overlays
+            * (information box and legend) will be displayed
+            * on the page. */
+            .mapboxgl-map {
+                font-family: 'Roboto', sans-serif;
+            }
+            .map-overlay {
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                background: #fff;
+                margin-right: 20px;
+                font-family: 'Roboto', sans-serif;
+                overflow: auto;
+                border-radius: 3px;
+            }
+            
+            #legend {
+                padding: 10px;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                line-height: 18px;
+                height: 100px;
+                margin-bottom: 40px;
+                width: 240px;
+            }
+            
+            .legend-key {
+                display: inline-block;
+                border-radius: 20%;
+                width: 10px;
+                height: 10px;
+                margin-right: 5px;
+            }
+            .popup-card {
+                /* background-color: rgba(255, 255, 255, 0.8); */
+                background-color: rgba(0,0,0,.6);
+                /* max-height: 150px; */
+                color: #fff;
+                padding: 0px;
+                border-radius: 4px;
+                box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+                /* backdrop-filter: blur(4px); Add backdrop filter for the glass effect */
+                max-height: 150px; /*Adjust the height as per your requirements */
+                /* font-family: 'Roboto', sans-serif; Use 'Roboto' font or any other font you prefer */
+            }
+
+            .mapboxgl-popup-anchor-top .mapboxgl-popup-tip,
+            .mapboxgl-popup-anchor-top-left .mapboxgl-popup-tip,
+            .mapboxgl-popup-anchor-top-right .mapboxgl-popup-tip {
+                border-bottom-color: rgba(0,0,0,.6);
+            }
+            .mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip,
+            .mapboxgl-popup-anchor-bottom-left .mapboxgl-popup-tip,
+            .mapboxgl-popup-anchor-bottom-right .mapboxgl-popup-tip {
+                border-top-color: rgba(0,0,0,.6);
+            }
+            .mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+                border-right-color: rgba(0,0,0,.6);
+            }
+            .mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+                border-left-color: rgba(0,0,0,.6);
+            }
+
+        </style>
+
+        <div id='map'></div>
+        
+        <div class='map-overlay' id='legend'></div>
+        <script> mapboxgl.accessToken = 'pk.eyJ1IjoiYW5nZWxyYW5qZWwiLCJhIjoiY2xpdDU3NHM2MmgyeTNlbGdmbTVsc2YxaSJ9.Lun-kVxxBZM8A1gZ0_Q6qQ';</script>
+        
+        <script> 
+
+            const map = new mapboxgl.Map({
+                container: 'map', // container id
+                style: 'mapbox://styles/angelranjel/cljeiwqx1000q01qudra224q1', // replace this with your style URL
+                center: [-98, 38.88],
+                minZoom: 2,
+                zoom: 3
+                });
+            const popup = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false,
+                anchor: 'bottom',
+                anchorPadding: '0',
+                offset: [0, -20]
+            });
+        </script>
+        
+        <script>
+            map.on('load', () => {
+                const layers = [
+                            '0-.64 - Severe Shortage',
+                            '.65-.95 - Moderate Shortage',
+                            '.96-1.05 - Balanced Shortage',
+                            '1.06+ - Surplus'
+                            ];
+                const colors = [
+                '#ff4a22',
+                '#ffbbaa',
+                '#ffe4dd',
+                '#d8fdbd'
+                ];   
+                
+                const legend = document.getElementById('legend');
+                
+                layers.forEach((layer, i) => {
+                    const color = colors[i];
+                    const item = document.createElement('div');
+                    const key = document.createElement('span');
+                    key.className = 'legend-key';
+                    key.style.backgroundColor = color;
+
+                    const value = document.createElement('span');
+                    value.innerHTML = `${layer}`;
+                    item.appendChild(key);
+                    item.appendChild(value);
+                    legend.appendChild(item);
+                });
+                map.addSource('states-hover-data', {
+                    type: 'vector',
+                    url: 'mapbox://angelranjel.9jd6psse'
+                    // url: 'mapbox://angelranjel.9jd6psse'
+                    // url: 'https://api.mapbox.com/v4/{angelranjel.9jd6psse}.json'
+                }); 
+
+                map.addLayer({
+                id: 'states-hover',
+                type: 'fill',
+                source: 'states-hover-data',
+                'source-layer': 'states_mapbox_data_sample-c2qeb',
+                layout: {},
+                paint: {
+                'fill-color': [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false],
+                    'rgba(0, 0, 0, 0.6)',
+                    'rgba(0, 0, 0, 0)'
+                ]
+                }
+            });
+            });
+            map.fitBounds([
+                [-133.2421875, 16.972741],
+                [-47.63671875, 52.696361]
+            ]);
+            
+            
+            
+            // Add the mousemove and mouseleave events
+            map.on('mousemove', 'states-hover-data', function (e) {
+                // Set the feature state for the hovered feature
+                if (e.features.length > 0) {
+                map.setFeatureState(
+                    { source: 'states-hover', id: e.features[0].id },
+                    { hover: true }
+                );
+                }
+            });
+
+            map.on('mouseleave', 'states-hover-data', function () {
+                // Reset the feature state for all features
+                map.setFeatureState(
+                { source: 'states-hover', id: null },
+                { hover: false }
+                );
+            });
+
+            map.on('mousemove', 'states-mapbox-data', function (e) {
+            map.getCanvas().style.cursor = 'pointer';
+
+                if (e.features.length > 0) {
+                    const feature = e.features[0];
+                    const properties = feature.properties;
+
+                    const popupContent = '<h3>' + properties.name + '</h3>' +
+                        '<p>Shortage Ratio: ' + properties['shortage ratio'] + '</p>';
+
+                    popup.setLngLat(e.lngLat)
+                    .setHTML(popupContent)
+                    .addTo(map);
+                    // popup._content.classList.add('popup-float');
+                    popup._content.classList.add('popup-card');
+                } 
+                
+            });
+
+
+            map.on('mouseleave', 'states-mapbox-data', function () {
+                map.getCanvas().style.cursor = '';
+                popup.remove();
+                // popup._content.classList.remove('popup-float');
+                popup._content.classList.remove('popup-card');
+            });
+
+        </script>
+    </body>
+</html>
